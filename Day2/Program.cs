@@ -4,7 +4,7 @@ internal class Program
 {
     static void Main(string[] _)
     {
-        var result = SumLines.UseSequential();
+        var result = SumLines.UseUnrolled();
         Console.WriteLine(result.ToString());
     }
 }
