@@ -5,10 +5,29 @@ namespace Day2;
 
 internal static class SumLines
 {
-    private static readonly int[] map = new int[9] { 4, 8, 3, 1, 5, 9, 7, 2, 6 };
-    private static readonly Vector256<byte> mapVector = Vector256.Create(
+    private static readonly int[] scoresMap = new int[9] { 4, 8, 3, 1, 5, 9, 7, 2, 6 };
+    private static readonly Vector256<byte> scoresVectorMap = Vector256.Create(
         4, 8, 3, 0, 1, 5, 9, 0, 7, 2, 6, 0, 0, 0, 0, 0,
         4, 8, 3, 0, 1, 5, 9, 0, 7, 2, 6, 0, 0, 0, 0, (byte)0);
+
+    //O1, s,P1, n,O2, s,P2, n
+    //O3, s,P3, n,O4, s,P4, n
+    //O5, s,P5, n,O6, s,P6, n
+    //O7, s,P7, n,O8, s,P8, n
+    //
+    //O1,P1,  ,  ,O2,P2,  ,
+    //  ,  ,O3,P3,  ,  ,O4,P4
+    //O5,P5,  ,  ,O6,P6,  ,
+    //  ,  ,O7,P7,  ,  ,O8,P8
+    private static readonly Vector256<byte> inputShuffleLowIndicies = Vector256.Create(
+        0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0, 2, 4, 6, 8, 10, 12, 14);
+    private static readonly Vector256<byte> inputShuffleHighIndicies = Vector256.Create(
+        0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0, 2, 4, 6, 8, 10, 12, 14,
+        0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
+    private static readonly Vector256<byte> offsets = Vector256.Create(
+        65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, 88,
+        65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, 88, 65, (byte)88); // 65 = A, 88 = x
 
     public static int UseSequential()
     {
@@ -22,7 +41,7 @@ internal static class SumLines
         {
             opponent = (buffer[0] - 65) * 3; // A
             player = buffer[2] - 88; // X
-            score += map[opponent + player];
+            score += scoresMap[opponent + player];
         }
 
         return score;
@@ -42,19 +61,19 @@ internal static class SumLines
         {
             opponent1 = (buffer[0] - 65) * 3; // A
             player1 = buffer[2] - 88; // X
-            score1 += map[opponent1 + player1];
+            score1 += scoresMap[opponent1 + player1];
 
             opponent2 = (buffer[4] - 65) * 3; // A
             player2 = buffer[6] - 88; // X
-            score2 += map[opponent2 + player2];
+            score2 += scoresMap[opponent2 + player2];
 
             opponent3 = (buffer[8] - 65) * 3; // A
             player3 = buffer[10] - 88; // X
-            score3 += map[opponent3 + player3];
+            score3 += scoresMap[opponent3 + player3];
 
             opponent4 = (buffer[12] - 65) * 3; // A
             player4 = buffer[14] - 88; // X
-            score4 += map[opponent4 + player4];
+            score4 += scoresMap[opponent4 + player4];
         }
 
         if (read == 12) { goto read12; }
@@ -65,15 +84,15 @@ internal static class SumLines
     read12:
         opponent3 = (buffer[8] - 65) * 3; // A
         player3 = buffer[10] - 88; // X
-        score3 += map[opponent3 + player3];
+        score3 += scoresMap[opponent3 + player3];
     read8:
         opponent2 = (buffer[4] - 65) * 3; // A
         player2 = buffer[6] - 88; // X
-        score2 += map[opponent2 + player2];
+        score2 += scoresMap[opponent2 + player2];
     read4:
         opponent1 = (buffer[0] - 65) * 3; // A
         player1 = buffer[2] - 88; // X
-        score1 += map[opponent1 + player1];
+        score1 += scoresMap[opponent1 + player1];
     read0:
 
         return score1 + score2 + score3 + score4;
@@ -93,35 +112,35 @@ internal static class SumLines
         {
             opponent1 = (buffer[0] - 65) * 3; // A
             player1 = buffer[2] - 88; // X
-            score1 += map[opponent1 + player1];
+            score1 += scoresMap[opponent1 + player1];
 
             opponent2 = (buffer[4] - 65) * 3; // A
             player2 = buffer[6] - 88; // X
-            score2 += map[opponent2 + player2];
+            score2 += scoresMap[opponent2 + player2];
 
             opponent3 = (buffer[8] - 65) * 3; // A
             player3 = buffer[10] - 88; // X
-            score3 += map[opponent3 + player3];
+            score3 += scoresMap[opponent3 + player3];
 
             opponent4 = (buffer[12] - 65) * 3; // A
             player4 = buffer[14] - 88; // X
-            score4 += map[opponent4 + player4];
+            score4 += scoresMap[opponent4 + player4];
 
             opponent5 = (buffer[16] - 65) * 3; // A
             player5 = buffer[18] - 88; // X
-            score5 += map[opponent5 + player5];
+            score5 += scoresMap[opponent5 + player5];
 
             opponent6 = (buffer[20] - 65) * 3; // A
             player6 = buffer[22] - 88; // X
-            score6 += map[opponent6 + player6];
+            score6 += scoresMap[opponent6 + player6];
 
             opponent7 = (buffer[24] - 65) * 3; // A
             player7 = buffer[26] - 88; // X
-            score7 += map[opponent7 + player7];
+            score7 += scoresMap[opponent7 + player7];
 
             opponent8 = (buffer[28] - 65) * 3; // A
             player8 = buffer[30] - 88; // X
-            score8 += map[opponent8 + player8];
+            score8 += scoresMap[opponent8 + player8];
         }
 
         if (read == 28) { goto read28; }
@@ -136,31 +155,31 @@ internal static class SumLines
     read28:
         opponent7 = (buffer[24] - 65) * 3; // A
         player7 = buffer[26] - 88; // X
-        score7 += map[opponent7 + player7];
+        score7 += scoresMap[opponent7 + player7];
     read24:
         opponent6 = (buffer[20] - 65) * 3; // A
         player6 = buffer[22] - 88; // X
-        score6 += map[opponent6 + player6];
+        score6 += scoresMap[opponent6 + player6];
     read20:
         opponent5 = (buffer[16] - 65) * 3; // A
         player5 = buffer[18] - 88; // X
-        score5 += map[opponent5 + player5];
+        score5 += scoresMap[opponent5 + player5];
     read16:
         opponent4 = (buffer[12] - 65) * 3; // A
         player4 = buffer[14] - 88; // X
-        score4 += map[opponent4 + player4];
+        score4 += scoresMap[opponent4 + player4];
     read12:
         opponent3 = (buffer[8] - 65) * 3; // A
         player3 = buffer[10] - 88; // X
-        score3 += map[opponent3 + player3];
+        score3 += scoresMap[opponent3 + player3];
     read8:
         opponent2 = (buffer[4] - 65) * 3; // A
         player2 = buffer[6] - 88; // X
-        score2 += map[opponent2 + player2];
+        score2 += scoresMap[opponent2 + player2];
     read4:
         opponent1 = (buffer[0] - 65) * 3; // A
         player1 = buffer[2] - 88; // X
-        score1 += map[opponent1 + player1];
+        score1 += scoresMap[opponent1 + player1];
     read0:
 
         return score1 + score2 + score3 + score4 + score5 + score6 + score7 + score8;
@@ -171,39 +190,27 @@ internal static class SumLines
         using var stream = File.OpenRead("input.txt");
 
         var zero = Vector256<byte>.Zero;
+        var one = Vector256.Create<sbyte>(1);
         var accumlator = Vector256<ushort>.Zero;
 
-        var opponentOffset = Vector256.Create((byte)65); // A
-        var playerOffset = Vector256.Create((byte)88); // X
-
-        Span<byte> buffer = stackalloc byte[128];
+        Span<byte> buffer = stackalloc byte[64];
         int read;
-        while ((read = stream.Read(buffer)) == 128)
+        while ((read = stream.Read(buffer)) == 64)
         {
-            var opponent = Vector256.Create(
-                buffer[0], buffer[4], buffer[8], buffer[12], buffer[16], buffer[20], buffer[24], buffer[28],
-                buffer[32], buffer[36], buffer[40], buffer[44], buffer[48], buffer[52], buffer[56], buffer[60],
-                buffer[64], buffer[68], buffer[72], buffer[76], buffer[80], buffer[84], buffer[88], buffer[92],
-                buffer[96], buffer[100], buffer[104], buffer[108], buffer[112], buffer[116], buffer[120], buffer[124]);
-            var player = Vector256.Create(
-                buffer[2], buffer[6], buffer[10], buffer[14], buffer[18], buffer[22], buffer[26], buffer[30],
-                buffer[34], buffer[38], buffer[42], buffer[46], buffer[50], buffer[54], buffer[58], buffer[62],
-                buffer[66], buffer[70], buffer[74], buffer[78], buffer[82], buffer[86], buffer[90], buffer[94],
-                buffer[98], buffer[102], buffer[106], buffer[110], buffer[114], buffer[118], buffer[122], buffer[126]);
+            var first = Vector256.Create<byte>(buffer);
+            var firstInt = Vector256.Shuffle(first, inputShuffleLowIndicies).AsUInt32();
+            var second = Vector256.Create<byte>(buffer.Slice(32, 32));
+            var secondInt = Vector256.Shuffle(second, inputShuffleHighIndicies).AsUInt32();
+            var whole = Avx2.Blend(firstInt, secondInt, 0x3c).AsByte();
 
-            opponent = Avx2.Subtract(opponent, opponentOffset);
-            opponent = Avx2.Add(opponent, opponent); // There is no multiply or left shift for byte vectors.
-            opponent = Avx2.Add(opponent, opponent); // This is equivilent to multiply by 4 or left shift by 2.
-            player = Avx2.Subtract(player, playerOffset);
+            whole = Avx2.Subtract(whole, offsets);
+            //opponent = Avx2.Add(opponent, opponent); // There is no multiply or left shift for byte vectors.
+            //opponent = Avx2.Add(opponent, opponent); // This is equivilent to multiply by 4 or left shift by 2.
 
-            var indices = Avx2.Add(opponent, player);
-            var scores = Avx2.Shuffle(mapVector, indices);
-
-            // Unpack to ushorts and add to accumulator.
-            var lowScores = Avx2.UnpackLow(scores, zero).AsUInt16();
-            accumlator = Avx2.Add(accumlator, lowScores);
-            var highScores = Avx2.UnpackHigh(scores, zero).AsUInt16();
-            accumlator = Avx2.Add(accumlator, highScores);
+            var indices = Avx2.MultiplyAddAdjacent(whole, one).AsByte();
+            var scores = Avx2.Shuffle(scoresVectorMap, indices).AsUInt16();
+            
+            accumlator = Avx2.Add(accumlator, scores);
         }
 
         // Add accumulator values together.
@@ -222,7 +229,7 @@ internal static class SumLines
         {
             opponentScalar = (buffer[i] - 65) * 3; // A
             playerScalar = buffer[i + 2] - 88; // X
-            score += map[opponentScalar + playerScalar];
+            score += scoresMap[opponentScalar + playerScalar];
         }
 
         return score;
