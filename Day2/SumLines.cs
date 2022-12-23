@@ -1,8 +1,14 @@
-﻿namespace Day2;
+﻿using System.Runtime.Intrinsics.X86;
+using System.Runtime.Intrinsics;
+
+namespace Day2;
 
 internal static class SumLines
 {
     private static readonly int[] map = new int[9] { 4, 8, 3, 1, 5, 9, 7, 2, 6 };
+    private static readonly Vector256<byte> mapVector = Vector256.Create(
+        4, 8, 3, 0, 1, 5, 9, 0, 7, 2, 6, 0, 0, 0, 0, 0,
+        4, 8, 3, 0, 1, 5, 9, 0, 7, 2, 6, 0, 0, 0, 0, (byte)0);
 
     public static int UseSequential()
     {
@@ -158,5 +164,67 @@ internal static class SumLines
     read0:
 
         return score1 + score2 + score3 + score4 + score5 + score6 + score7 + score8;
+    }
+
+    public static int UseIntrinsics()
+    {
+        using var stream = File.OpenRead("input.txt");
+
+        var zero = Vector256<byte>.Zero;
+        var accumlator = Vector256<ushort>.Zero;
+
+        var opponentOffset = Vector256.Create((byte)65); // A
+        var playerOffset = Vector256.Create((byte)88); // X
+
+        Span<byte> buffer = stackalloc byte[128];
+        int read;
+        while ((read = stream.Read(buffer)) == 128)
+        {
+            var opponent = Vector256.Create(
+                buffer[0], buffer[4], buffer[8], buffer[12], buffer[16], buffer[20], buffer[24], buffer[28],
+                buffer[32], buffer[36], buffer[40], buffer[44], buffer[48], buffer[52], buffer[56], buffer[60],
+                buffer[64], buffer[68], buffer[72], buffer[76], buffer[80], buffer[84], buffer[88], buffer[92],
+                buffer[96], buffer[100], buffer[104], buffer[108], buffer[112], buffer[116], buffer[120], buffer[124]);
+            var player = Vector256.Create(
+                buffer[2], buffer[6], buffer[10], buffer[14], buffer[18], buffer[22], buffer[26], buffer[30],
+                buffer[34], buffer[38], buffer[42], buffer[46], buffer[50], buffer[54], buffer[58], buffer[62],
+                buffer[66], buffer[70], buffer[74], buffer[78], buffer[82], buffer[86], buffer[90], buffer[94],
+                buffer[98], buffer[102], buffer[106], buffer[110], buffer[114], buffer[118], buffer[122], buffer[126]);
+
+            opponent = Avx2.Subtract(opponent, opponentOffset);
+            opponent = Avx2.Add(opponent, opponent); // There is no multiply or left shift for byte vectors.
+            opponent = Avx2.Add(opponent, opponent); // This is equivilent to multiply by 4 or left shift by 2.
+            player = Avx2.Subtract(player, playerOffset);
+
+            var indices = Avx2.Add(opponent, player);
+            var scores = Avx2.Shuffle(mapVector, indices);
+
+            // Unpack to ushorts and add to accumulator.
+            var lowScores = Avx2.UnpackLow(scores, zero).AsUInt16();
+            accumlator = Avx2.Add(accumlator, lowScores);
+            var highScores = Avx2.UnpackHigh(scores, zero).AsUInt16();
+            accumlator = Avx2.Add(accumlator, highScores);
+        }
+
+        // Add accumulator values together.
+        Span<ushort> scoresArray = stackalloc ushort[16];
+        accumlator.CopyTo(scoresArray);
+        int score = 0;
+        for (var i = 0; i < 16; i++)
+        {
+            score += scoresArray[i];
+        }
+
+        // Process remaining lines sequentially.
+        int opponentScalar;
+        int playerScalar;
+        for (var i = 0; i < read; i += 4)
+        {
+            opponentScalar = (buffer[i] - 65) * 3; // A
+            playerScalar = buffer[i + 2] - 88; // X
+            score += map[opponentScalar + playerScalar];
+        }
+
+        return score;
     }
 }
